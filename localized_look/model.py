@@ -26,11 +26,7 @@ class LoLoLayer(nn.Module):
         self.fusion = fusion
 
         if isinstance(activation, str):
-            activation = {
-                "invsquare": act.LoLoInvSquare(),
-                "gaussian": act.LoLoInvSquare(),
-                "sigmoid": act.LoLoSigmoid()
-            }[activation]
+            activation = act.ACTIVATION_DICT[activation]
 
         self.layers = nn.ModuleList([
             nn.Sequential(
@@ -54,7 +50,7 @@ class LoLoLayer(nn.Module):
         channels = [x[:, [i]] for i in range(self.nc)]
         looked = [layer(channel) for layer, channel in zip(self.layers, channels)]
         if self.fusion:
-            looked = [tensor.view(-1,self.nk, 1) for tensor in looked]
+            looked = [tensor.unsqueeze(2) for tensor in looked]
             merged = torch.cat(looked, axis=2)
             if self.fusion == "channels":
                 channels = [merged[:, i, :] for i in range(self.nk)]
