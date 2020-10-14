@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import numpy as np
 from . import activation as act
 
 class LoLoLayer(nn.Module):
@@ -36,16 +37,12 @@ class LoLoLayer(nn.Module):
         ])
         if self.fusion:
             if self.fusion == "channels":
-                n1, n2 = n_channels, n_kernels
+                size = n_kernels
             elif self.fusion == "kernels":
-                n1, n2 = n_kernels, n_channels
+                size = n_channels
+            self.fusion_layer_w = nn.Parameter(torch.Tensor(np.random.rand(1, n_kernels, n_channels)*2 - 1))
+            self.fusion_layer_b = nn.Parameter(torch.Tensor(np.random.rand(1, size)*2 - 1))
 
-            self.fusion_layers = nn.ModuleList([
-                nn.Sequential(
-                    nn.Linear(n1, 1),
-                ) for i in range(n2)
-            ])
-            
     def forward(self, x):
         channels = [x[:, [i]] for i in range(self.nc)]
         looked = [layer(channel) for layer, channel in zip(self.layers, channels)]
@@ -53,11 +50,10 @@ class LoLoLayer(nn.Module):
             looked = [tensor.unsqueeze(2) for tensor in looked]
             merged = torch.cat(looked, axis=2)
             if self.fusion == "channels":
-                channels = [merged[:, i, :] for i in range(self.nk)]
+                axis = 2
             if self.fusion == "kernels":
-                channels = [merged[:, :, i] for i in range(self.nc)]
-            outputs = [layer(channel) for layer, channel in zip(self.fusion_layers, channels)]
-            output = torch.cat(outputs, axis=1)
+                axis = 1
+            output = (merged*self.fusion_layer_w).sum(axis=axis) + self.fusion_layer_b
         else:
             output = torch.cat(looked, axis=1)
         return output

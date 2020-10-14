@@ -68,8 +68,9 @@ def weight_init(m):
         for param in m.layers.parameters():
             init.uniform_(param.data, a=-1., b=1.)
         if m.fusion is not None:
-            for child in m.fusion_layers.children():
-                child.apply(weight_init)
+            init.uniform_(m.fusion_layer_w, a=-1., b=1.)
+            if hasattr(m, "fusion_layer_b"):
+                init.uniform_(m.fusion_layer_b, a=-1., b=1.)
     elif isinstance(m, nn.GRUCell):
         for param in m.parameters():
             if len(param.shape) >= 2:

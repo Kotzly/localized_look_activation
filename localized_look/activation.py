@@ -20,6 +20,19 @@ class LoLoInv4(nn.Module):
     def forward(self, x):
         return 1/(1 + (self.scale*x)**4)
 
+class AdaptativeSigmoid(nn.Module):
+    def __init__(self, scale=1, a=1, b=1):
+        super().__init__()
+        self.scale = scale
+        self.a = nn.Parameter(torch.Tensor(a))
+        self.b = nn.Parameter(torch.Tensor(b))
+    
+    def sigmoid(self, x):
+        return 1/(1 + torch.exp(-x))
+
+    def forward(self, x):
+        pred = self.sigmoid(x + self.a) * (1 - self.sigmoid(x - self.b))
+        return pred
 
 class LoLoInvLogSquared(nn.Module):
     
@@ -57,4 +70,5 @@ ACTIVATION_DICT = {
     "inv4": LoLoInv4(),
     "logsquared": LoLoInvLogSquared(),
     "sigmoid": LoLoInvLogSquared(),
+    "adaptative": AdaptativeSigmoid(),
 }
