@@ -78,13 +78,22 @@ def weight_init(m):
             else:
                 init.normal_(param.data)
 
-def create_labels_checker(x, n=3, size=1, stride=2, start=0):
+def create_labels_checker(x, n=3, size=1, stride=2, start=0, size_factor=1, stride_factor=1):
     assert stride >= 2*size
     allcond = np.ones(x.shape[0]).astype(bool)
     for dim in range(x.shape[1]):
         stepcond = np.zeros(x.shape[0]).astype(bool)
+        size_ = size
+        stride_ = stride
+        start_ = start
+        end_ = start + size
         for i in range(n):
-            cond = (x[:, dim] > i*stride + start) & (x[:, dim] < i*stride + size + start)
+            cond = (x[:, dim] > start_) & (x[:, dim] < end_)
             stepcond = stepcond | cond
+            
+            size_ = size_ * size_factor
+            stride_ = stride_ * stride_factor
+            start_ = end_ + stride_
+            end_ = start_ + size_
         allcond = stepcond & allcond
     return allcond

@@ -63,12 +63,57 @@ class LoLoSigmoid(nn.Module):
         sigmoid = self.sigmoid(x)
         return sigmoid * (1 - sigmoid)
 
+class SinX(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return torch.sin(x)/x
+
+class CosOverCosh(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return torch.cos(x)/(torch.exp(x) + torch.exp(-x))
+
+class InvCosh(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return 1/torch.cosh(x)
+
+class TanhX(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return torch.tanh(x)/x
+
+class OneMinusTanhSquared(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return 1 - torch.tanh(x)**2
+
+
+
+
+
+
+
 ACTIVATION_DICT = {
     "invsquare": LoLoInvSquare(),
     "gaussian": LoLoInvSquare(),
     "sigmoid": LoLoSigmoid(),
     "inv4": LoLoInv4(),
     "logsquared": LoLoInvLogSquared(),
-    "sigmoid": LoLoInvLogSquared(),
     "adaptative": AdaptativeSigmoid(),
+    "sinx": SinX(),
+    "cosovercosh": CosOverCosh(),
+    "invcosh": InvCosh(),
+    "tanhx": TanhX(),
+    "omtq": OneMinusTanhSquared()
 }
